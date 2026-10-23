@@ -84,45 +84,71 @@ document.addEventListener('DOMContentLoaded', () => {
     btnSubmit.disabled = true;
     btnSubmit.textContent = 'Gravando...';
 
+    const payload = {
+      nome: nome || 'Colega do evento',
+      contato: contatoPrincipal,
+      whatsapp: whatsapp,
+      instagram: instagram,
+      linkedin: linkedin,
+      recado: recado,
+      tipo: 'formulario_evento',
+      detalhes: detalhes,
+      criado_em: new Date().toLocaleString('pt-BR')
+    };
+
+    // 1. Sempre salvar no backup local (localStorage)
     try {
-      const res = await fetch('/api/registrar', {
+      const backupAntigo = JSON.parse(localStorage.getItem('munux_contatos_locais') || '[]');
+      backupAntigo.unshift(payload);
+      localStorage.setItem('munux_contatos_locais', JSON.stringify(backupAntigo));
+    } catch (errStorage) {
+      console.warn('Erro ao salvar no localStorage:', errStorage);
+    }
+
+    // 2. Enviar para a Planilha do Google Sheets (se configurada)
+    const googleSheetUrl = (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_SHEET_URL) 
+      ? CONFIG.GOOGLE_SHEET_URL 
+      : localStorage.getItem('munux_google_sheet_url');
+
+    let enviouGoogle = false;
+    if (googleSheetUrl) {
+      try {
+        await fetch(googleSheetUrl, {
+          method: 'POST',
+          mode: 'no-cors', // Essencial para Google Apps Script
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        enviouGoogle = true;
+      } catch (errGoogle) {
+        console.warn('Tentativa Google Sheets:', errGoogle);
+      }
+    }
+
+    // 3. Tentar servidor local (se estiver em execução)
+    try {
+      await fetch('/api/registrar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nome: nome || 'Colega do evento',
-          contato: contatoPrincipal,
-          whatsapp: whatsapp,
-          instagram: instagram,
-          linkedin: linkedin,
-          recado: recado,
-          tipo: 'formulario_evento',
-          detalhes: detalhes
-        })
+        body: JSON.stringify(payload)
       });
-
-      const data = await res.json();
-      feedbackMsg.hidden = false;
-      feedbackMsg.className = 'feedback-msg success';
-      feedbackMsg.textContent = '❤️ ' + (data.message || 'Salvo com sucesso!');
-      formConnect.reset();
-
-      setTimeout(() => {
-        modalConnect.close();
-        btnSubmit.disabled = false;
-        btnSubmit.textContent = 'Salvar & Conectar 🚀';
-      }, 1800);
-    } catch (err) {
-      console.error(err);
-      feedbackMsg.hidden = false;
-      feedbackMsg.className = 'feedback-msg success';
-      feedbackMsg.textContent = '❤️ Gravado com sucesso! Prazer enorme te conhecer!';
-      formConnect.reset();
-      setTimeout(() => {
-        modalConnect.close();
-        btnSubmit.disabled = false;
-        btnSubmit.textContent = 'Salvar & Conectar 🚀';
-      }, 1800);
+    } catch (_) {
+      // Ignora silenciosamente se o servidor Python local estiver offline
     }
+
+    // Feedback de sucesso
+    feedbackMsg.hidden = false;
+    feedbackMsg.className = 'feedback-msg success';
+    feedbackMsg.textContent = enviouGoogle 
+      ? '✨ Conexão salva na sua planilha com sucesso!' 
+      : '❤️ Contato registrado com sucesso! Amei te conhecer!';
+    formConnect.reset();
+
+    setTimeout(() => {
+      modalConnect.close();
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = 'Salvar & Conectar 🚀';
+    }, 1800);
   });
 
   // Rastrear cliques nos links (LinkedIn, WhatsApp, GitHub, Currículo)
