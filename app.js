@@ -113,11 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let enviouGoogle = false;
     if (googleSheetUrl) {
       try {
+        const formData = new URLSearchParams();
+        Object.keys(payload).forEach(key => formData.append(key, payload[key]));
+
         await fetch(googleSheetUrl, {
           method: 'POST',
-          mode: 'no-cors', // Essencial para Google Apps Script
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData.toString()
         });
         enviouGoogle = true;
       } catch (errGoogle) {
