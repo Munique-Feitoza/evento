@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#ff2a85">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MunuxApp">
+  <title>Munux App · Central da Munique</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="./config.js"></script>
+  <style>
+    body {
+      padding-bottom: 70px;
+    }
+    .app-top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      background: rgba(14, 5, 20, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--purple-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .app-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--pink-primary), #9b2aff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: #fff;
+    }
+    .brand-title {
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+    .brand-subtitle {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--pink-bright);
+    }
+    .tab-content {
+      display: none;
+      padding: 1.25rem 1rem;
+      max-width: 580px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Bottom Navigation Bar */
+    .bottom-navbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: rgba(14, 5, 20, 0.95);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--purple-border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+      padding: 0 0.5rem;
+    }
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .nav-btn.active {
+      color: var(--pink-bright);
+    }
+    .nav-btn.active::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      width: 28px;
+      height: 3px;
+      background: var(--pink-primary);
+      border-radius: 999px;
+      box-shadow: 0 0 10px var(--pink-primary);
+    }
+    .nav-badge {
+      position: absolute;
+      top: 2px;
+      right: 6px;
+      background: var(--pink-primary);
+      color: #fff;
+      font-size: 0.6rem;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 999px;
+      box-shadow: 0 0 8px var(--pink-glow);
+    }
+    /* Estilos da Aba QR Code */
+    .qr-present-card {
+      background: var(--bg-card);
+      border: 1px solid var(--pink-primary);
+      border-radius: 24px;
+      padding: 1.75rem 1.25rem;
+      text-align: center;
+      box-shadow: 0 0 35px var(--pink-glow);
+    }
+    .qr-frame-box {
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 20px;
+      display: inline-block;
+      margin: 1.25rem auto 1rem;
+      box-shadow: 0 0 25px rgba(255, 42, 133, 0.4);
+    }
+    .qr-frame-box img, .qr-frame-box canvas {
+      display: block;
+      margin: 0 auto;
+    }
+    .qr-helper-tip {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--pink-bright);
+      margin-top: 0.5rem;
+      line-height: 1.4;
+    }
+    .btn-fullscreen-qr {
+      background: linear-gradient(135deg, var(--pink-primary), #9b2aff);
+      color: #fff;
+      border: none;
+      padding: 0.85rem 1.5rem;
+      border-radius: 14px;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 1rem;
+      box-shadow: 0 4px 20px var(--pink-glow);
+    }
+    /* Iframe da Página Delas */
+    .preview-card {
+      background: var(--bg-card);
+      border: 1px solid var(--purple-border);
+      border-radius: 20px;
+      padding: 1rem;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+    .preview-wrapper {
+      width: 100%;
+      height: 600px;
+      border: 1px solid var(--purple-border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #0d0714;
+    }
+    .preview-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    /* Lista de Conexões */
+    .leads-header-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .leads-item {
+      background: rgba(14, 5, 20, 0.8);
+      border: 1px solid var(--purple-border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .leads-item:hover {
+      border-color: var(--pink-primary);
+    }
+    .leads-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .leads-nome {
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: #fff;
+    }
+    .leads-hora {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .leads-contato-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(37, 211, 102, 0.15);
+      border: 1px solid rgba(37, 211, 102, 0.4);
+      color: #25d366;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      text-decoration: none;
+      font-weight: 700;
+      width: fit-content;
+      margin-top: 4px;
+    }
+    .leads-contato-btn:active {
+      transform: scale(0.98);
+    }
+    .leads-tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--pink-bright);
+    }
+    .btn-refresh {
+      background: var(--purple-surface);
+      color: var(--text-main);
+      border: 1px solid var(--pink-primary);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="cyber-glow-bg"></div>
+  <div class="cyber-grid"></div>
+
+  <!-- Header Superior Fixo -->
+  <header class="app-top-header">
+    <div class="app-brand">
+      <div class="brand-avatar">MF</div>
+      <div>
+        <div class="brand-title">Munique Feitoza</div>
+        <div class="brand-subtitle">CENTRAL DO EVENTO · TECH</div>
+      </div>
+    </div>
+    <button id="btn-refresh-data" class="btn-refresh">🔄 Atualizar</button>
+  </header>
+
+  <main>
+    <!-- ABA 1: MOSTRAR QR CODE (PARA ELAS LEREM) -->
+    <section id="tab-qrcode" class="tab-content active">
+      <div class="qr-present-card">
+        <div class="modal-tag" style="background:rgba(255,42,133,0.2); color:var(--pink-bright); padding:4px 10px; border-radius:6px; font-family:var(--font-mono); font-size:0.75rem; font-weight:700; display:inline-block;">MOSTRAR NO EVENTO</div>
+        <h2 style="font-size:1.6rem; margin-top:8px;">Aponte a câmera aqui ✨</h2>
+        <p style="font-size:0.9rem; color:var(--text-muted); margin-top:4px;">
+          As mulheres do evento leem este QR Code para abrir suas redes, currículo e portfólio.
+        </p>
+
+        <div class="qr-frame-box" id="app-qr-box"></div>
+
+        <div class="qr-helper-tip">
+          ★ Brilho alto na tela ajuda na leitura rápida pelo celular delas!
+        </div>
+
+        <div class="qr-url-box" style="margin-top:1.25rem;">
+          <span id="app-qr-url-text">https://recreational-state-work-village.trycloudflare.com</span>
+          <button id="btn-app-copy" class="btn-copy">Copiar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA 2: QUEM SE CONECTOU (PRIVADO PARA MUNIQUE) -->
+    <section id="tab-leads" class="tab-content">
+      <div class="leads-header-info">
+        <div>
+          <h2 style="font-size:1.4rem;">Conexões do Evento</h2>
+          <div style="font-size:0.8rem; color:var(--text-muted);" id="leads-summary">Carregando métricas...</div>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button id="btn-export-csv" class="btn-refresh" title="Exportar para Excel / CSV">📥 CSV</button>
+          <button id="btn-config-sheet" class="btn-refresh" style="color:var(--pink-bright); border-color:rgba(255,42,133,0.4);" title="Configurar URL do Google Sheets">⚙️ Planilha</button>
+          <button id="btn-refresh-list" class="btn-refresh">Atualizar</button>
+          <button id="btn-clear-test-data" class="btn-refresh" style="color:#ff66ad; border-color:rgba(255,42,133,0.3);" title="Zerar lista">🗑️</button>
+        </div>
+      </div>
+
+      <!-- Card expansível de Configuração do Google Sheets -->
+      <div id="box-sheet-config" style="display:none; background:rgba(255,42,133,0.08); border:1px solid var(--purple-border); border-radius:12px; padding:1rem; margin-bottom:1rem;">
+        <div style="font-weight:700; font-size:0.85rem; color:#fff; margin-bottom:4px;">📊 Integração com Google Sheets (Nuvem 24/7)</div>
+        <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">Cole a URL do seu Google Apps Script (Web App) para salvar e consultar contatos na nuvem sem precisar do PC:</div>
+        <input type="url" id="inp-sheet-url" placeholder="https://script.google.com/macros/s/.../exec" style="width:100%; box-sizing:border-box; padding:8px 12px; border-radius:8px; background:rgba(10,5,15,0.8); border:1px solid var(--purple-border); color:#fff; font-family:var(--font-mono); font-size:0.75rem; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span id="sheet-status-text" style="font-size:0.75rem; color:var(--pink-bright);"></span>
+          <button id="btn-save-sheet-url" class="btn-refresh" style="background:var(--pink-primary); color:#fff; border:none; padding:6px 14px; font-weight:700;">Salvar Conexão</button>
+        </div>
+      </div>
+
+      <div id="leads-container">
+        <div style="text-align:center; padding:3rem 1rem; color:var(--text-muted);">
+          Nenhuma conexão recebida ainda.<br>Mostre o QR Code para as mulheres no evento! 🚀
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA 3: COMO ELAS VEEM (PÁGINA PÚBLICA) -->
+    <section id="tab-preview" class="tab-content">
+      <div class="preview-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+          <div>
+            <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--pink-bright); font-weight:700;">VISÃO DO PÚBLICO</span>
+            <div style="font-size:0.8rem; color:var(--text-muted);">Exatamente como abre no celular delas</div>
+          </div>
+          <a href="./index.html" target="_blank" class="btn-copy" style="text-decoration:none; display:inline-block;">Abrir Nova Aba ↗</a>
+        </div>
+        <div class="preview-wrapper">
+          <iframe src="./index.html" class="preview-iframe" id="public-preview-frame"></iframe>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Barra de Navegação Inferior (Estilo App Nativo) -->
+  <nav class="bottom-navbar">
+    <button class="nav-btn active" data-tab="tab-qrcode" id="nav-btn-qr">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      <span>QR Code</span>
+    </button>
+
+    <button class="nav-btn" data-tab="tab-leads" id="nav-btn-leads">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      <span>Conexões</span>
+      <span class="nav-badge" id="nav-leads-badge">0</span>
+    </button>
+
+    <button class="nav-btn" data-tab="tab-preview" id="nav-btn-preview">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+      <span>Página Delas</span>
+    </button>
+  </nav>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+
+    // URL pública oficial para as participantes acessarem
+    const publicUrl = 'https://munique-feitoza.github.io/evento/';
+    document.getElementById('app-qr-url-text').textContent = publicUrl;
+
+    // Gerar QR Code de Alta Resolução para apresentar
+    const qrContainer = document.getElementById('app-qr-box');
+    new QRCode(qrContainer, {
+      text: publicUrl,
+      width: 240,
+      height: 240,
+      colorDark: '#0d0714',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+    // Copiar URL
+    const btnCopy = document.getElementById('btn-app-copy');
+    btnCopy.addEventListener('click', () => {
+      navigator.clipboard.writeText(publicUrl).then(() => {
+        btnCopy.textContent = 'Copiado!';
+        setTimeout(() => btnCopy.textContent = 'Copiar', 2000);
+      });
+    });
+
+    // Navegação por Abas
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    navButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTabId = btn.getAttribute('data-tab');
+
+        navButtons.forEach(b => b.classList.remove('active'));
+        tabContents.forEach(t => t.classList.remove('active'));
+
+        btn.classList.add('active');
+        document.getElementById(targetTabId).classList.add('active');
+
+        if (targetTabId === 'tab-leads') {
+          carregarConexoes();
+        }
+      });
+    });
+
+    // Gerenciamento da URL do Google Sheets
+    const boxSheetConfig = document.getElementById('box-sheet-config');
+    const btnConfigSheet = document.getElementById('btn-config-sheet');
+    const inpSheetUrl = document.getElementById('inp-sheet-url');
+    const btnSaveSheetUrl = document.getElementById('btn-save-sheet-url');
+    const sheetStatusText = document.getElementById('sheet-status-text');
+
+    const currentSavedUrl = (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_SHEET_URL) 
+      ? CONFIG.GOOGLE_SHEET_URL 
+      : localStorage.getItem('munux_google_sheet_url') || '';
+    
+    if (currentSavedUrl) {
+      inpSheetUrl.value = currentSavedUrl;
+      sheetStatusText.textContent = '🟢 Conectado ao Google Sheets';
+    } else {
+      sheetStatusText.textContent = '⚪ Nenhuma planilha vinculada ainda';
+    }
+
+    btnConfigSheet.addEventListener('click', () => {
+      boxSheetConfig.style.display = boxSheetConfig.style.display === 'none' ? 'block' : 'none';
+    });
+
+    btnSaveSheetUrl.addEventListener('click', () => {
+      const url = inpSheetUrl.value.trim();
+      if (!url) {
+        alert('Por favor, cole a URL do seu Google Apps Script (Web App)');
+        return;
+      }
+      if (typeof CONFIG !== 'undefined') CONFIG.setGoogleSheetUrl(url);
+      localStorage.setItem('munux_google_sheet_url', url);
+      sheetStatusText.textContent = '🟢 Conectado e salvo!';
+      setTimeout(() => { boxSheetConfig.style.display = 'none'; }, 1200);
+      carregarConexoes();
+    });
+
+    let listaAtualContatos = [];
+
+    // Função de renderização rápida
+    window.renderConexoesData = function(dataSheet) {
+      if (dataSheet && dataSheet.conexoes) {
+        renderizarListaGeral(dataSheet.conexoes);
+        if (sheetStatusText) sheetStatusText.textContent = '🟢 Nuvem sincronizada';
+      }
+    };
+
+    function renderizarListaGeral(conexoesNuvem = []) {
+      const container = document.getElementById('leads-container');
+      const summary = document.getElementById('leads-summary');
+      const badge = document.getElementById('nav-leads-badge');
+
+      let todasConexoes = [...conexoesNuvem];
+
+      try {
+        const contatosBackup = JSON.parse(localStorage.getItem('munux_contatos_locais') || '[]');
+        todasConexoes.push(...contatosBackup);
+      } catch (_) {}
+
+      const vistos = new Set();
+      const contatosFiltrados = [];
+      for (const c of todasConexoes) {
+        const chave = `${(c.nome || '').toLowerCase().trim()}_${(c.contato || c.whatsapp || '').toLowerCase().trim()}`;
+        if (!vistos.has(chave)) {
+          vistos.add(chave);
+          contatosFiltrados.push(c);
+        }
+      }
+
+      listaAtualContatos = contatosFiltrados;
+      badge.textContent = contatosFiltrados.length;
+      const contatosValidos = contatosFiltrados.filter(c => c.contato && c.contato !== 'N/A' && c.contato !== 'Acesso inicial');
+      summary.textContent = `${contatosFiltrados.length} interações · ${contatosValidos.length} contatos diretos`;
+
+      if (contatosFiltrados.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:3rem 1rem; color:var(--text-muted);">Nenhuma conexão recebida ainda.<br>Mostre o QR Code para as pessoas no evento! 🚀</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      contatosFiltrados.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'leads-item';
+
+        let contatoAction = '';
+        const infoContato = c.contato || c.whatsapp || c.instagram || c.linkedin || '';
+        if (infoContato && infoContato !== 'N/A' && infoContato !== 'Acesso inicial') {
+          const actions = [];
+          
+          const rawPhone = c.whatsapp || (infoContato.match(/(?:WhatsApp:\s*)?([0-9\(\)\s\-\+]{8,20})/i) ? infoContato.match(/(?:WhatsApp:\s*)?([0-9\(\)\s\-\+]{8,20})/i)[1] : '');
+          const cleanPhone = String(rawPhone).replace(/[^0-9]/g, '');
+          if (cleanPhone.length >= 8) {
+            const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : '55' + cleanPhone;
+            actions.push(`<a href="https://wa.me/${fullPhone}?text=Ol%C3%A1%20${encodeURIComponent(c.nome)}!%20Adorei%20trocar%20uma%20ideia%20com%20voc%C3%AA%20no%20evento%2C%20tudo%20bem%3F" target="_blank" class="leads-contato-btn">💬 WhatsApp</a>`);
+          }
+
+          const rawInsta = c.instagram || (infoContato.toLowerCase().includes('instagram') ? infoContato.split('Instagram:')[1].split('·')[0].trim() : '');
+          const cleanInsta = String(rawInsta).replace(/[^a-zA-Z0-9_\.]/g, '');
+          if (cleanInsta) {
+            actions.push(`<a href="https://instagram.com/${cleanInsta}" target="_blank" class="leads-contato-btn" style="color:#ff66ad; border-color:rgba(255,102,173,0.4); background:rgba(255,42,133,0.12)">📸 @${cleanInsta}</a>`);
+          }
+
+          const rawLinkedIn = c.linkedin || (infoContato.toLowerCase().includes('linkedin') ? infoContato.split('LinkedIn:')[1].split('·')[0].trim() : '');
+          if (rawLinkedIn) {
+            const cleanUrl = String(rawLinkedIn).startsWith('http') ? rawLinkedIn : `https://${rawLinkedIn}`;
+            actions.push(`<a href="${cleanUrl}" target="_blank" class="leads-contato-btn" style="color:#4ad5ff; border-color:rgba(74,213,255,0.4); background:rgba(74,213,255,0.12)">💼 LinkedIn</a>`);
+          }
+
+          if (actions.length > 0) {
+            contatoAction = `<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;">${actions.join('')}</div>`;
+          } else {
+            contatoAction = `<span class="leads-contato-btn" style="color:var(--pink-bright); background:rgba(255,42,133,0.15); border-color:rgba(255,42,133,0.3)">📱 ${infoContato}</span>`;
+          }
+        }
+
+        const dataStr = c.criado_em ? (String(c.criado_em).length > 16 ? String(c.criado_em).substring(0, 16) : c.criado_em) : 'Hoje';
+
+        item.innerHTML = `
+          <div class="leads-top">
+            <span class="leads-nome">${c.nome || 'Visitante anônima'}</span>
+            <span class="leads-hora">${dataStr}</span>
+          </div>
+          <div class="leads-tag">${c.recado ? 'Recado: "' + c.recado + '"' : (c.detalhes || c.tipo || 'Conexão')}</div>
+          ${contatoAction}
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    // Carregar e listar conexões (Google Sheets + Local + Cache)
+    async function carregarConexoes() {
+      // Prioridade 1: Chamar Bridge Nativa do Android
+      if (window.AndroidBridge && typeof window.AndroidBridge.loadConexoesFromNative === 'function') {
+        window.AndroidBridge.loadConexoesFromNative();
+        return;
+      }
+
+      const sheetUrl = (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_SHEET_URL) 
+        ? CONFIG.GOOGLE_SHEET_URL 
+        : localStorage.getItem('munux_google_sheet_url');
+
+      let todasConexoes = [];
+
+      if (sheetUrl) {
+        try {
+          const resSheet = await fetch(sheetUrl);
+          const dataSheet = await resSheet.json();
+          if (dataSheet && dataSheet.conexoes) {
+            todasConexoes.push(...dataSheet.conexoes);
+            if (sheetStatusText) sheetStatusText.textContent = '🟢 Nuvem sincronizada';
+          }
+        } catch (errSheet) {
+          console.warn('Google Sheets offline ou CORS:', errSheet);
+          if (sheetStatusText) sheetStatusText.textContent = '⚠️ Erro ao consultar planilha';
+        }
+      }
+
+      try {
+        const resLocal = await fetch('/api/conexoes');
+        const dataLocal = await resLocal.json();
+        if (dataLocal && dataLocal.conexoes) {
+          todasConexoes.push(...dataLocal.conexoes);
+        }
+      } catch (_) {}
+
+      renderizarListaGeral(todasConexoes);
+    }
+
+    // Exportação para CSV / Excel
+    document.getElementById('btn-export-csv').addEventListener('click', () => {
+      if (!listaAtualContatos || listaAtualContatos.length === 0) {
+        alert('Nenhum contato na lista para exportar ainda!');
+        return;
+      }
+
+      let csv = 'Data,Nome,WhatsApp,Instagram,LinkedIn,Recado\n';
+      listaAtualContatos.forEach(c => {
+        const data = (c.criado_em || '').replace(/,/g, ' ');
+        const nome = (c.nome || '').replace(/,/g, ' ');
+        const zap = (c.whatsapp || '').replace(/,/g, ' ');
+        const insta = (c.instagram || '').replace(/,/g, ' ');
+        const inUrl = (c.linkedin || '').replace(/,/g, ' ');
+        const recado = (c.recado || c.detalhes || '').replace(/[\n\r,]/g, ' ');
+        csv += `"${data}","${nome}","${zap}","${insta}","${inUrl}","${recado}"\n`;
+      });
+
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contatos_evento_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('btn-refresh-data').addEventListener('click', carregarConexoes);
+    document.getElementById('btn-refresh-list').addEventListener('click', carregarConexoes);
+    
+    // Botão Limpar Testes
+    const btnClearData = document.getElementById('btn-clear-test-data');
+    if (btnClearData) {
+      btnClearData.addEventListener('click', async () => {
+        if (!confirm('Deseja realmente apagar o histórico de testes locais?')) return;
+        localStorage.removeItem('munux_contatos_locais');
+        try {
+          await fetch('/api/limpar', { method: 'POST' });
+        } catch (_) {}
+        carregarConexoes();
+      });
+    }
+
+    // Atualização em segundo plano a cada 10s
+    setInterval(carregarConexoes, 10000);
+    carregarConexoes();
+  </script>
+</body>
+</html>
