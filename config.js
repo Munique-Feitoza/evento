@@ -1,10 +1,9 @@
 // Configuração Central do App de Eventos - Munique Feitoza
-// Cole aqui a URL do seu Google Apps Script (Web App)
+// URL do Google Apps Script (Web App) integrado à sua planilha do Google Drive
 const CONFIG = {
-  // Exemplo: 'https://script.google.com/macros/s/AKfycbx.../exec'
-  GOOGLE_SHEET_URL: localStorage.getItem('munux_google_sheet_url') || '',
+  GOOGLE_SHEET_URL: 'https://script.google.com/macros/s/AKfycbxkMw5NftADoCaJPX3_nMiZk4my-eDCXRDIS_kInrGMbJ4PtkrU5uJRZIAeghZDeGFt/exec',
   
-  // Salvar nova URL do Google Sheets
+  // Atualizar dinamicamente se necessário
   setGoogleSheetUrl: function(url) {
     if (url) {
       localStorage.setItem('munux_google_sheet_url', url.trim());
