@@ -23,15 +23,25 @@ document.addEventListener('DOMContentLoaded', () => {
   // Gerar QR Code
   let qrCodeInstance = null;
   function renderQrCode(url) {
+    if (!qrDisplay) return;
     qrDisplay.innerHTML = '';
-    qrCodeInstance = new QRCode(qrDisplay, {
-      text: url,
-      width: 220,
-      height: 220,
-      colorDark: '#0d0714',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.H
-    });
+    try {
+      if (typeof QRCode !== 'undefined') {
+        qrCodeInstance = new QRCode(qrDisplay, {
+          text: url,
+          width: 220,
+          height: 220,
+          colorDark: '#0d0714',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      } else {
+        qrDisplay.innerHTML = '<img src="./qrcode-evento-munique.png" alt="QR Code Munique" style="width:220px;height:220px;border-radius:12px;background:#fff;padding:8px;">';
+      }
+    } catch (err) {
+      console.warn('Fallback para imagem de QR Code:', err);
+      qrDisplay.innerHTML = '<img src="./qrcode-evento-munique.png" alt="QR Code Munique" style="width:220px;height:220px;border-radius:12px;background:#fff;padding:8px;">';
+    }
   }
   renderQrCode(currentUrl);
 

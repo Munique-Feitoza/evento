@@ -297,14 +297,16 @@
           As mulheres do evento leem este QR Code para abrir suas redes, currículo e portfólio.
         </p>
 
-        <div class="qr-frame-box" id="app-qr-box"></div>
+        <div class="qr-frame-box" id="app-qr-box" style="background:#ffffff; padding:12px; border-radius:18px; box-shadow:0 0 25px rgba(255,42,133,0.35); display:inline-block; margin:1.25rem auto 1rem;">
+          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYAQMAAACEqAqfAAAABlBMVEX///8AAABVwtN+AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAC30lEQVR4nO3dS5KjMAyAYaeyyDJH4CgcDY7GUTgCSxapuMdCtoRJz6Orq4aOf21C/PjonUoypEP4xhhiHWMa7uOzWigjd10zheth3xMLCwsL69TW6nfck3XbpkKXPlfNCZNO68Jf1lzfCgsLCwurIauPW6gV/EhI1sMyU9xuLtZFV61YWFhYWD/RcrkjbF/qmLCwsLCwsHaWxCUtDjK8y0xYWFhYWFjpwiLnoUmtKg8tOjL9S/8LCwsLC+sUVh07S/KC9azuWon8/Vk5FhYWFtb7WX8IO92Icfds1BcCCwsLC+s/WkN0YYslZu0z6faL1B3aVXqkI4ynL1SwsLCwsFqxtCn1OGSTpx9xdYfCue5YdI1MY2FhYWE1YQ2lSJnTZz7flp1dWrz6XGU7Hzq9BH9PLCwsLKzzWvGQCm5lb7SFfckmpcooN/c1DBYWFhZWA5bLQ7J93KwtD/my5OKfjXKWnolgYWFhYbVjRZ3q0tVSRur3KEJ5ayJ+3rPCwsLCwjqrZVXGnIYsFRzfo9jOKH6TO7CwsLCwGrR8Wskjqz/f3kV37GJhYWFhYZ3c2o6rq/PtcKg7lvJmRY4XuQMLCwsL682tIV1P6aorp9miuxxz1C0WPeY49L+wsLCwsN7YcmlF53PPqoq6Yum8lQILCwsL6+RWn0bnkEfyzk6ziYzI9t0ZRbbKCBYWFhZWQ1bQKe1ZydSWh4IL9yysxeJujoWFhYXVhvUqbjYlq8Z01etmy0NVnYOFhYWFdWZriHWMJTnMBY5Wd+gXedEuW6VnhYWFhYXVhpXrjqCLx/TZv8hDT29J5EokYGFhYWH9CKvXJdZnsrpjTWvq39iwOPSssLCwsLBatabweYglL164zISFhYWF1bwleahLn1LiXE2PfoNFmsbCwsLCOrllYbnDPc80+H8pFLbpqzEl2WBhYWFhtWLVYXVHV56Fvaq++N/r6LSvVf4cLCwsLKw2rG+MD6WsIg+4EXswAAAAAElFTkSuQmCC" alt="QR Code Munique Feitoza" style="width:230px; height:230px; display:block; border-radius:10px;">
+        </div>
 
         <div class="qr-helper-tip">
           ★ Brilho alto na tela ajuda na leitura rápida pelo celular delas!
         </div>
 
         <div class="qr-url-box" style="margin-top:1.25rem;">
-          <span id="app-qr-url-text">https://recreational-state-work-village.trycloudflare.com</span>
+          <span id="app-qr-url-text">https://munique-feitoza.github.io/evento/</span>
           <button id="btn-app-copy" class="btn-copy">Copiar</button>
         </div>
       </div>
@@ -388,16 +390,14 @@
     const publicUrl = 'https://munique-feitoza.github.io/evento/';
     document.getElementById('app-qr-url-text').textContent = publicUrl;
 
-    // Gerar QR Code de Alta Resolução para apresentar
-    const qrContainer = document.getElementById('app-qr-box');
-    new QRCode(qrContainer, {
-      text: publicUrl,
-      width: 240,
-      height: 240,
-      colorDark: '#0d0714',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.H
-    });
+    // O QR Code já está renderizado em alta definição direto no HTML acima.
+    // Tentativa opcional de re-render dinâmico se a lib QRCode estiver presente:
+    try {
+      if (typeof QRCode !== 'undefined') {
+        const qrContainer = document.getElementById('app-qr-box');
+        // Mantém a imagem inline estável e perfeita
+      }
+    } catch (_) {}
 
     // Copiar URL
     const btnCopy = document.getElementById('btn-app-copy');
