@@ -2,3 +2,4 @@ contatos_evento.db
 GOOGLE_APPS_SCRIPT.js
 *.pyc
 __pycache__/
+server.py
