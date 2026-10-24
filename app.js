@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1800);
   });
 
-  // Função centralizada para registrar conexões e interações na nuvem 24/7
+  // Função centralizada para registrar conexões na nuvem apenas quando a pessoa submete o formulário
   async function registrarInteracao(dataPayload) {
     const googleSheetUrl = (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_SHEET_URL) 
       ? CONFIG.GOOGLE_SHEET_URL 
@@ -160,39 +160,5 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(dataPayload)
       });
     } catch (_) {}
-  }
-
-  // Rastrear cliques nos links (LinkedIn, WhatsApp, GitHub, Currículo)
-  document.querySelectorAll('.social-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const channel = card.getAttribute('data-channel') || 'Canal';
-      registrarInteracao({
-        nome: 'Visitante (Interesse)',
-        contato: 'N/A',
-        whatsapp: '',
-        instagram: '',
-        linkedin: '',
-        recado: '',
-        tipo: 'clique_canal',
-        detalhes: `Acessou: ${channel}`,
-        criado_em: new Date().toLocaleString('pt-BR')
-      });
-    });
-  });
-
-  // Notificar visita inicial da pessoa (uma vez por sessão)
-  if (!sessionStorage.getItem('munux_visit_logged')) {
-    sessionStorage.setItem('munux_visit_logged', '1');
-    registrarInteracao({
-      nome: 'Scan de QR Code',
-      contato: 'Acesso ao site',
-      whatsapp: '',
-      instagram: '',
-      linkedin: '',
-      recado: '',
-      tipo: 'visita_pagina',
-      detalhes: 'Leu QR code do evento e abriu a página',
-      criado_em: new Date().toLocaleString('pt-BR')
-    });
   }
 });

@@ -592,10 +592,7 @@
 
     // Carregar e listar conexões (Google Sheets + Local + Cache)
     async function carregarConexoes() {
-      // 1. Renderiza o que já tem em cache/local de imediato
-      renderizarListaGeral([]);
-
-      // 2. Chamar Bridge Nativa do Android se disponível
+      // 1. Chamar Bridge Nativa do Android se disponível (sem limpar a tela antes)
       if (window.AndroidBridge && typeof window.AndroidBridge.loadConexoesFromNative === 'function') {
         try {
           window.AndroidBridge.loadConexoesFromNative();
