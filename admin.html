@@ -465,121 +465,161 @@
 
     let listaAtualContatos = [];
 
-    // Função de renderização rápida
+    function safeString(val) {
+      if (val === null || val === undefined) return '';
+      return String(val).trim();
+    }
+
+    // Função de renderização rápida chamada pela ponte nativa ou fetch
     window.renderConexoesData = function(dataSheet) {
-      if (dataSheet && dataSheet.conexoes) {
-        renderizarListaGeral(dataSheet.conexoes);
-        if (sheetStatusText) sheetStatusText.textContent = '🟢 Nuvem sincronizada';
+      try {
+        if (typeof dataSheet === 'string') {
+          dataSheet = JSON.parse(dataSheet);
+        }
+        if (dataSheet && dataSheet.conexoes) {
+          renderizarListaGeral(dataSheet.conexoes);
+          const statusElem = document.getElementById('sheet-status-text');
+          if (statusElem) statusElem.textContent = '🟢 Nuvem sincronizada';
+        }
+      } catch (err) {
+        console.error('Erro ao renderizar dados:', err);
       }
     };
 
     function renderizarListaGeral(conexoesNuvem = []) {
-      const container = document.getElementById('leads-container');
-      const summary = document.getElementById('leads-summary');
-      const badge = document.getElementById('nav-leads-badge');
-
-      let todasConexoes = [...conexoesNuvem];
-
       try {
-        const contatosBackup = JSON.parse(localStorage.getItem('munux_contatos_locais') || '[]');
-        todasConexoes.push(...contatosBackup);
-      } catch (_) {}
+        const container = document.getElementById('leads-container');
+        const summary = document.getElementById('leads-summary');
+        const badge = document.getElementById('nav-leads-badge');
 
-      const vistos = new Set();
-      const contatosFiltrados = [];
-      for (const c of todasConexoes) {
-        const chave = `${(c.nome || '').toLowerCase().trim()}_${(c.contato || c.whatsapp || '').toLowerCase().trim()}`;
-        if (!vistos.has(chave)) {
-          vistos.add(chave);
-          contatosFiltrados.push(c);
-        }
-      }
+        let todasConexoes = [...conexoesNuvem];
 
-      listaAtualContatos = contatosFiltrados;
-      badge.textContent = contatosFiltrados.length;
-      const contatosValidos = contatosFiltrados.filter(c => c.contato && c.contato !== 'N/A' && c.contato !== 'Acesso inicial');
-      summary.textContent = `${contatosFiltrados.length} interações · ${contatosValidos.length} contatos diretos`;
+        try {
+          const contatosBackup = JSON.parse(localStorage.getItem('munux_contatos_locais') || '[]');
+          todasConexoes.push(...contatosBackup);
+        } catch (_) {}
 
-      if (contatosFiltrados.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:3rem 1rem; color:var(--text-muted);">Nenhuma conexão recebida ainda.<br>Mostre o QR Code para as pessoas no evento! 🚀</div>';
-        return;
-      }
+        const vistos = new Set();
+        const contatosFiltrados = [];
+        for (const c of todasConexoes) {
+          if (!c) continue;
+          const nomeStr = safeString(c.nome);
+          const zapStr = safeString(c.whatsapp);
+          const instaStr = safeString(c.instagram);
+          const inStr = safeString(c.linkedin);
+          const recadoStr = safeString(c.recado);
+          const contatoStr = safeString(c.contato || zapStr || instaStr || inStr || '');
 
-      container.innerHTML = '';
-      contatosFiltrados.forEach(c => {
-        const item = document.createElement('div');
-        item.className = 'leads-item';
-
-        let contatoAction = '';
-        const infoContato = c.contato || c.whatsapp || c.instagram || c.linkedin || '';
-        if (infoContato && infoContato !== 'N/A' && infoContato !== 'Acesso inicial') {
-          const actions = [];
-          
-          const rawPhone = c.whatsapp || (infoContato.match(/(?:WhatsApp:\s*)?([0-9\(\)\s\-\+]{8,20})/i) ? infoContato.match(/(?:WhatsApp:\s*)?([0-9\(\)\s\-\+]{8,20})/i)[1] : '');
-          const cleanPhone = String(rawPhone).replace(/[^0-9]/g, '');
-          if (cleanPhone.length >= 8) {
-            const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : '55' + cleanPhone;
-            actions.push(`<a href="https://wa.me/${fullPhone}?text=Ol%C3%A1%20${encodeURIComponent(c.nome)}!%20Adorei%20trocar%20uma%20ideia%20com%20voc%C3%AA%20no%20evento%2C%20tudo%20bem%3F" target="_blank" class="leads-contato-btn">💬 WhatsApp</a>`);
-          }
-
-          const rawInsta = c.instagram || (infoContato.toLowerCase().includes('instagram') ? infoContato.split('Instagram:')[1].split('·')[0].trim() : '');
-          const cleanInsta = String(rawInsta).replace(/[^a-zA-Z0-9_\.]/g, '');
-          if (cleanInsta) {
-            actions.push(`<a href="https://instagram.com/${cleanInsta}" target="_blank" class="leads-contato-btn" style="color:#ff66ad; border-color:rgba(255,102,173,0.4); background:rgba(255,42,133,0.12)">📸 @${cleanInsta}</a>`);
-          }
-
-          const rawLinkedIn = c.linkedin || (infoContato.toLowerCase().includes('linkedin') ? infoContato.split('LinkedIn:')[1].split('·')[0].trim() : '');
-          if (rawLinkedIn) {
-            const cleanUrl = String(rawLinkedIn).startsWith('http') ? rawLinkedIn : `https://${rawLinkedIn}`;
-            actions.push(`<a href="${cleanUrl}" target="_blank" class="leads-contato-btn" style="color:#4ad5ff; border-color:rgba(74,213,255,0.4); background:rgba(74,213,255,0.12)">💼 LinkedIn</a>`);
-          }
-
-          if (actions.length > 0) {
-            contatoAction = `<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;">${actions.join('')}</div>`;
-          } else {
-            contatoAction = `<span class="leads-contato-btn" style="color:var(--pink-bright); background:rgba(255,42,133,0.15); border-color:rgba(255,42,133,0.3)">📱 ${infoContato}</span>`;
+          const chave = `${nomeStr.toLowerCase()}_${(contatoStr || zapStr).toLowerCase()}`;
+          if (!vistos.has(chave)) {
+            vistos.add(chave);
+            contatosFiltrados.push({
+              ...c,
+              nome: nomeStr,
+              whatsapp: zapStr,
+              instagram: instaStr,
+              linkedin: inStr,
+              recado: recadoStr,
+              contato: contatoStr
+            });
           }
         }
 
-        const dataStr = c.criado_em ? (String(c.criado_em).length > 16 ? String(c.criado_em).substring(0, 16) : c.criado_em) : 'Hoje';
+        listaAtualContatos = contatosFiltrados;
+        if (badge) badge.textContent = contatosFiltrados.length;
+        const contatosValidos = contatosFiltrados.filter(c => c.contato && c.contato !== 'N/A' && c.contato !== 'Acesso inicial');
+        if (summary) summary.textContent = `${contatosFiltrados.length} interações · ${contatosValidos.length} contatos diretos`;
 
-        item.innerHTML = `
-          <div class="leads-top">
-            <span class="leads-nome">${c.nome || 'Visitante anônima'}</span>
-            <span class="leads-hora">${dataStr}</span>
-          </div>
-          <div class="leads-tag">${c.recado ? 'Recado: "' + c.recado + '"' : (c.detalhes || c.tipo || 'Conexão')}</div>
-          ${contatoAction}
-        `;
-        container.appendChild(item);
-      });
+        if (!container) return;
+
+        if (contatosFiltrados.length === 0) {
+          container.innerHTML = '<div style="text-align:center; padding:3rem 1rem; color:var(--text-muted);">Nenhuma conexão recebida ainda.<br>Mostre o QR Code para as pessoas no evento! 🚀</div>';
+          return;
+        }
+
+        container.innerHTML = '';
+        contatosFiltrados.forEach(c => {
+          const item = document.createElement('div');
+          item.className = 'leads-item';
+
+          let contatoAction = '';
+          const infoContato = safeString(c.contato || c.whatsapp || c.instagram || c.linkedin);
+          if (infoContato && infoContato !== 'N/A' && infoContato !== 'Acesso inicial') {
+            const actions = [];
+            
+            const rawPhone = safeString(c.whatsapp) || (infoContato.match(/(?:WhatsApp:\s*)?([0-9\(\)\s\-\+]{8,20})/i) ? infoContato.match(/(?:WhatsApp:\s*)?([0-9\(\)\s\-\+]{8,20})/i)[1] : '');
+            const cleanPhone = rawPhone.replace(/[^0-9]/g, '');
+            if (cleanPhone.length >= 8) {
+              const fullPhone = cleanPhone.startsWith('55') ? cleanPhone : '55' + cleanPhone;
+              actions.push(`<a href="https://wa.me/${fullPhone}?text=Ol%C3%A1%20${encodeURIComponent(c.nome || 'tudo bem?')}%21%20Adorei%20trocar%20uma%20ideia%20com%20voc%C3%AA%20no%20evento%2C%20tudo%20bem%3F" target="_blank" class="leads-contato-btn">💬 WhatsApp</a>`);
+            }
+
+            const rawInsta = safeString(c.instagram) || (infoContato.toLowerCase().includes('instagram') ? infoContato.split(/instagram:/i)[1].split('·')[0].trim() : '');
+            const cleanInsta = rawInsta.replace(/[^a-zA-Z0-9_\.]/g, '');
+            if (cleanInsta) {
+              actions.push(`<a href="https://instagram.com/${cleanInsta}" target="_blank" class="leads-contato-btn" style="color:#ff66ad; border-color:rgba(255,102,173,0.4); background:rgba(255,42,133,0.12)">📸 @${cleanInsta}</a>`);
+            }
+
+            const rawLinkedIn = safeString(c.linkedin) || (infoContato.toLowerCase().includes('linkedin') ? infoContato.split(/linkedin:/i)[1].split('·')[0].trim() : '');
+            if (rawLinkedIn) {
+              const cleanUrl = rawLinkedIn.startsWith('http') ? rawLinkedIn : `https://${rawLinkedIn}`;
+              actions.push(`<a href="${cleanUrl}" target="_blank" class="leads-contato-btn" style="color:#4ad5ff; border-color:rgba(74,213,255,0.4); background:rgba(74,213,255,0.12)">💼 LinkedIn</a>`);
+            }
+
+            if (actions.length > 0) {
+              contatoAction = `<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;">${actions.join('')}</div>`;
+            } else {
+              contatoAction = `<span class="leads-contato-btn" style="color:var(--pink-bright); background:rgba(255,42,133,0.15); border-color:rgba(255,42,133,0.3)">📱 ${infoContato}</span>`;
+            }
+          }
+
+          const dataStr = c.criado_em ? (String(c.criado_em).length > 16 ? String(c.criado_em).substring(0, 16) : String(c.criado_em)) : 'Hoje';
+
+          item.innerHTML = `
+            <div class="leads-top">
+              <span class="leads-nome">${c.nome || 'Visitante anônima'}</span>
+              <span class="leads-hora">${dataStr}</span>
+            </div>
+            <div class="leads-tag">${c.recado ? 'Recado: "' + c.recado + '"' : (c.detalhes || c.tipo || 'Conexão')}</div>
+            ${contatoAction}
+          `;
+          container.appendChild(item);
+        });
+      } catch (err) {
+        console.error('Erro em renderizarListaGeral:', err);
+      }
     }
 
     // Carregar e listar conexões (Google Sheets + Local + Cache)
     async function carregarConexoes() {
-      // Prioridade 1: Chamar Bridge Nativa do Android
+      // 1. Renderiza o que já tem em cache/local de imediato
+      renderizarListaGeral([]);
+
+      // 2. Chamar Bridge Nativa do Android se disponível
       if (window.AndroidBridge && typeof window.AndroidBridge.loadConexoesFromNative === 'function') {
-        window.AndroidBridge.loadConexoesFromNative();
-        return;
+        try {
+          window.AndroidBridge.loadConexoesFromNative();
+        } catch (eBridge) {
+          console.warn('Erro chamando AndroidBridge:', eBridge);
+        }
       }
 
+      // 3. Consulta Web (se permitida ou em navegador)
       const sheetUrl = (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_SHEET_URL) 
         ? CONFIG.GOOGLE_SHEET_URL 
         : localStorage.getItem('munux_google_sheet_url');
-
-      let todasConexoes = [];
 
       if (sheetUrl) {
         try {
           const resSheet = await fetch(sheetUrl);
           const dataSheet = await resSheet.json();
           if (dataSheet && dataSheet.conexoes) {
-            todasConexoes.push(...dataSheet.conexoes);
-            if (sheetStatusText) sheetStatusText.textContent = '🟢 Nuvem sincronizada';
+            renderizarListaGeral(dataSheet.conexoes);
+            const statusElem = document.getElementById('sheet-status-text');
+            if (statusElem) statusElem.textContent = '🟢 Nuvem sincronizada';
           }
         } catch (errSheet) {
-          console.warn('Google Sheets offline ou CORS:', errSheet);
-          if (sheetStatusText) sheetStatusText.textContent = '⚠️ Erro ao consultar planilha';
+          console.warn('Google Sheets fetch direto:', errSheet);
         }
       }
 
@@ -587,11 +627,9 @@
         const resLocal = await fetch('/api/conexoes');
         const dataLocal = await resLocal.json();
         if (dataLocal && dataLocal.conexoes) {
-          todasConexoes.push(...dataLocal.conexoes);
+          renderizarListaGeral(dataLocal.conexoes);
         }
       } catch (_) {}
-
-      renderizarListaGeral(todasConexoes);
     }
 
     // Exportação para CSV / Excel

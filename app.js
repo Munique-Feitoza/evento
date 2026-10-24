@@ -115,46 +115,13 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('Erro ao salvar no localStorage:', errStorage);
     }
 
-    // 2. Enviar para a Planilha do Google Sheets (se configurada)
-    const googleSheetUrl = (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_SHEET_URL) 
-      ? CONFIG.GOOGLE_SHEET_URL 
-      : localStorage.getItem('munux_google_sheet_url');
-
-    let enviouGoogle = false;
-    if (googleSheetUrl) {
-      try {
-        const formData = new URLSearchParams();
-        Object.keys(payload).forEach(key => formData.append(key, payload[key]));
-
-        await fetch(googleSheetUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: formData.toString()
-        });
-        enviouGoogle = true;
-      } catch (errGoogle) {
-        console.warn('Tentativa Google Sheets:', errGoogle);
-      }
-    }
-
-    // 3. Tentar servidor local (se estiver em execução)
-    try {
-      await fetch('/api/registrar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-    } catch (_) {
-      // Ignora silenciosamente se o servidor Python local estiver offline
-    }
+    // 2. Enviar para a Nuvem (Google Sheets) e Servidor Local
+    await registrarInteracao(payload);
 
     // Feedback de sucesso
     feedbackMsg.hidden = false;
     feedbackMsg.className = 'feedback-msg success';
-    feedbackMsg.textContent = enviouGoogle 
-      ? '✨ Conexão salva na sua planilha com sucesso!' 
-      : '❤️ Contato registrado com sucesso! Amei te conhecer!';
+    feedbackMsg.textContent = '✨ Conexão salva com sucesso! Amei te conhecer!';
     formConnect.reset();
 
     setTimeout(() => {
@@ -164,35 +131,68 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1800);
   });
 
+  // Função centralizada para registrar conexões e interações na nuvem 24/7
+  async function registrarInteracao(dataPayload) {
+    const googleSheetUrl = (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_SHEET_URL) 
+      ? CONFIG.GOOGLE_SHEET_URL 
+      : localStorage.getItem('munux_google_sheet_url');
+
+    if (googleSheetUrl) {
+      try {
+        const formData = new URLSearchParams();
+        Object.keys(dataPayload).forEach(key => formData.append(key, dataPayload[key] || ''));
+
+        await fetch(googleSheetUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData.toString()
+        });
+      } catch (errGoogle) {
+        console.warn('Tentativa Google Sheets:', errGoogle);
+      }
+    }
+
+    try {
+      await fetch('/api/registrar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataPayload)
+      });
+    } catch (_) {}
+  }
+
   // Rastrear cliques nos links (LinkedIn, WhatsApp, GitHub, Currículo)
   document.querySelectorAll('.social-card').forEach(card => {
     card.addEventListener('click', () => {
-      const channel = card.getAttribute('data-channel');
-      // Enviar log em segundo plano
-      fetch('/api/registrar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nome: 'Visitante anônimo do evento',
-          contato: 'N/A',
-          tipo: 'clique_canal',
-          detalhes: `Acessou: ${channel}`
-        })
-      }).catch(() => {});
+      const channel = card.getAttribute('data-channel') || 'Canal';
+      registrarInteracao({
+        nome: 'Visitante (Interesse)',
+        contato: 'N/A',
+        whatsapp: '',
+        instagram: '',
+        linkedin: '',
+        recado: '',
+        tipo: 'clique_canal',
+        detalhes: `Acessou: ${channel}`,
+        criado_em: new Date().toLocaleString('pt-BR')
+      });
     });
   });
 
-
-
-  // Notificar visita inicial
-  fetch('/api/registrar', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+  // Notificar visita inicial da pessoa (uma vez por sessão)
+  if (!sessionStorage.getItem('munux_visit_logged')) {
+    sessionStorage.setItem('munux_visit_logged', '1');
+    registrarInteracao({
       nome: 'Scan de QR Code',
-      contato: 'Acesso inicial',
+      contato: 'Acesso ao site',
+      whatsapp: '',
+      instagram: '',
+      linkedin: '',
+      recado: '',
       tipo: 'visita_pagina',
-      detalhes: 'Leu QR code do evento'
-    })
-  }).catch(() => {});
+      detalhes: 'Leu QR code do evento e abriu a página',
+      criado_em: new Date().toLocaleString('pt-BR')
+    });
+  }
 });
