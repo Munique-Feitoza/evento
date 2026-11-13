@@ -253,8 +253,17 @@ body {
   flex-wrap: wrap;
   justify-content: center;
   gap: 6px;
-  margin: 1.1rem 0 1.5rem;
+  margin: 0.5rem 0 0;
 }
+
+.credential-highlight { margin: 1.3rem 0; padding: 1rem; display:grid; gap:5px; border:1px solid var(--pink-primary); border-radius:14px; background:linear-gradient(135deg,rgba(255,42,133,.18),rgba(77,28,90,.35)); box-shadow:0 0 22px var(--pink-glow); text-align:left; }
+.credential-eyebrow,.stack-group-title { color:var(--pink-bright); font:700 .65rem var(--font-mono); letter-spacing:.09em; }
+.credential-highlight strong { color:#fff; font-size:1.1rem; }
+.credential-highlight span:last-child { color:var(--text-muted); font-size:.78rem; line-height:1.45; }
+.stack-groups { display:grid; gap:.8rem; margin:1rem 0 1.5rem; }
+.stack-group { display:grid; gap:.3rem; }
+.stack-group .profile-stacks { margin:0; }
+.secondary-stacks .stack-badge { opacity:.82; }
 
 .stack-badge {
   font-family: var(--font-mono);
