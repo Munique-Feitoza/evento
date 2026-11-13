@@ -426,6 +426,11 @@ body {
   border-radius: 4px;
 }
 
+.credential-card { display:flex; align-items:flex-start; gap:12px; padding:.9rem 1rem; border:1px solid var(--purple-border); border-radius:14px; background:var(--bg-card); }
+.credential-mark { color:var(--pink-bright); font-size:1.1rem; }
+.credential-card strong { display:block; font-size:.9rem; }
+.credential-card p { margin-top:3px; color:var(--text-muted); font-size:.78rem; line-height:1.4; }
+
 /* Footer */
 .silk-footer {
   text-align: center;
@@ -453,6 +458,9 @@ body {
   max-width: 500px;
   width: 100%;
   margin: auto;
+  max-height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .cyber-modal::backdrop {
@@ -466,6 +474,9 @@ body {
   border-radius: 24px;
   padding: 1.75rem;
   box-shadow: 0 0 40px var(--pink-glow);
+  max-height: calc(100dvh - 2.5rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-header {
@@ -619,6 +630,28 @@ body {
   font-size: 0.75rem;
   margin-bottom: 1rem;
   color: var(--pink-bright);
+  min-width: 0;
+}
+
+.qr-url-box span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+@media (max-width: 480px) {
+  .top-nav { padding: 1rem; }
+  .container { padding-inline: 1rem; }
+  .profile-card { padding: 1.5rem 1rem; border-radius: 20px; }
+  .profile-name { font-size: clamp(1.45rem, 7vw, 1.75rem); }
+  .profile-role { line-height: 1.5; overflow-wrap: anywhere; }
+  .social-card { padding: 0.85rem; gap: 10px; }
+  .card-sub { white-space: normal; overflow-wrap: anywhere; }
+  .cyber-modal { padding: 0.75rem; }
+  .modal-card { padding: 1.25rem; max-height: calc(100dvh - 1.5rem); }
+  .qr-canvas-wrapper { max-width: 100%; padding: 10px; }
+  .qr-canvas-wrapper img, .qr-canvas-wrapper canvas { max-width: min(220px, 62vw); height: auto; }
+  .qr-url-box { align-items: flex-start; font-size: 0.65rem; }
 }
 
 .btn-copy {
