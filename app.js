@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // URL atual (seja localhost, IP do wifi, ou URL pública do cloudflare)
-  const currentUrl = window.location.href;
+  const currentUrl = `${window.location.origin}${window.location.pathname}`;
   qrLiveUrl.textContent = currentUrl;
 
   // Gerar QR Code
