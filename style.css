@@ -385,6 +385,7 @@ body {
 }
 
 .card-icon.linkedin { background: rgba(10, 102, 194, 0.2); color: #0077b5; border: 1px solid rgba(10, 102, 194, 0.4); }
+.card-icon.youtube { background: rgba(255, 0, 0, 0.14); color: #ff5c70; border: 1px solid rgba(255, 92, 112, 0.4); }
 .card-icon.whatsapp { background: rgba(37, 211, 102, 0.2); color: #25d366; border: 1px solid rgba(37, 211, 102, 0.4); }
 .card-icon.portfolio { background: rgba(255, 42, 133, 0.2); color: var(--pink-bright); border: 1px solid rgba(255, 42, 133, 0.4); }
 .card-icon.github { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.2); }
